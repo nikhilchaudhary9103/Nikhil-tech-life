@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Nikhil | Tech Explorer — 3D Edition</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+		<style>
+			:root {
+				--bg1: #071024;
+				/* deep navy */
+				--bg2: #071a1a;
+				/* tealish */
+				--accent-1: #00f7ff;
+				--accent-2: #a855f7;
+				--accent-3: #00ff88;
+				--glass: rgba(255, 255, 255, 0.06);
+				--glass-2: rgba(255, 255, 255, 0.03);
+				--text: #e6f7ff;
+				--muted: rgba(230, 247, 255, 0.7);
+			}
+
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0
+			}
+
+			html,
+			body {
+				height: 100%
+			}
+
+			body {
+				font-family: 'Rajdhani', sans-serif;
+				background: radial-gradient(1200px 600px at 10% 10%, rgba(168, 85, 247, 0.08), transparent),
+					radial-gradient(1000px 500px at 90% 90%, rgba(0, 247, 255, 0.05), transparent),
+					linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+				color: var(--text);
+				-webkit-font-smoothing: antialiased;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 48px;
+				overflow: hidden;
+				perspective: 1200px;
+			}
+
+			/* Floating orbs */
+			.orb {
+				position: fixed;
+				pointer-events: none;
+				border-radius: 50%;
+				filter: blur(40px);
+				opacity: 0.6;
+				mix-blend-mode: screen;
+				z-index: 0;
+			}
+
+			.orb.o1 {
+				width: 540px;
+				height: 540px;
+				background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(0, 247, 255, 0.12));
+				left: -120px;
+				top: -120px
+			}
+
+			.orb.o2 {
+				width: 420px;
+				height: 420px;
+				background: linear-gradient(135deg, rgba(0, 247, 136, 0.12), rgba(168, 85, 247, 0.08));
+				right: -140px;
+				bottom: -100px
+			}
+
+			/* Scene container that tilts */
+			.stage {
+				width: 1100px;
+				max-width: 100%;
+				transform-style: preserve-3d;
+				transition: transform 0.25s ease-out;
+				z-index: 3;
+			}
+
+			.card {
+				border-radius: 18px;
+				padding: 34px;
+				background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+				box-shadow: 0 20px 60px rgba(2, 6, 23, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+				backdrop-filter: blur(14px) saturate(120%);
+				transform-style: preserve-3d;
+				position: relative;
+				overflow: hidden;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+			}
+
+			.hero {
+				display: grid;
+				grid-template-columns: 160px 1fr;
+				gap: 28px;
+				align-items: center;
+				min-height: 260px;
+			}
+
+			.avatar {
+				width: 160px;
+				height: 160px;
+				border-radius: 20px;
+				overflow: hidden;
+				flex-shrink: 0;
+				transform: translateZ(60px);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+				background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 28px;
+				font-weight: 700;
+				color: #031018;
+			}
+
+			.title {
+				transform: translateZ(45px);
+			}
+
+			.title h1 {
+				font-size: 44px;
+				color: var(--text);
+				letter-spacing: 0.6px;
+				margin-bottom: 6px
+			}
+
+			.title p {
+				color: var(--muted);
+				font-size: 16px
+			}
+
+			.buttons {
+				display: flex;
+				gap: 16px;
+				margin-top: 18px;
+				transform: translateZ(36px)
+			}
+
+			.btn {
+				padding: 12px 20px;
+				border-radius: 12px;
+				font-weight: 700;
+				text-decoration: none;
+				display: inline-flex;
+				align-items: center;
+				gap: 10px;
+				box-shadow: 0 8px 24px rgba(2, 6, 23, 0.5);
+				transform-origin: center;
+				transition: transform .18s cubic-bezier(.2, .9, .2, 1), box-shadow .18s;
+				cursor: pointer;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+			}
+
+			.btn.primary {
+				background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+				color: #05121a
+			}
+
+			.btn.ghost {
+				background: transparent;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				color: var(--muted)
+			}
+
+			.btn:active {
+				transform: scale(.98)
+			}
+
+			/* 3D Article cards grid */
+			.articles {
+				margin-top: 30px;
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 18px;
+				transform: translateZ(30px);
+			}
+
+			.article {
+				background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+				padding: 18px;
+				border-radius: 12px;
+				min-height: 140px;
+				position: relative;
+				border: 1px solid rgba(255, 255, 255, 0.04);
+				transition: transform .25s ease, box-shadow .25s ease;
+				transform-style: preserve-3d;
+				cursor: pointer;
+				backdrop-filter: blur(8px);
+			}
+
+			.article h3 {
+				font-size: 16px;
+				margin-bottom: 8px
+			}
+
+			.article p {
+				font-size: 13px;
+				color: var(--muted);
+				line-height: 1.45
+			}
+
+			.article:hover {
+				transform: translateY(-14px) rotateX(6deg) translateZ(60px);
+				box-shadow: 0 26px 60px rgba(2, 6, 23, 0.6)
+			}
+
+			/* small screens */
+			@media (max-width:900px) {
+				.hero {
+					grid-template-columns: 120px 1fr
+				}
+
+				.avatar {
+					width: 120px;
+					height: 120px
+				}
+
+				.articles {
+					grid-template-columns: repeat(2, 1fr)
+				}
+			}
+
+			@media (max-width:600px) {
+				body {
+					padding: 18px
+				}
+
+				.stage {
+					width: 100%
+				}
+
+				.hero {
+					grid-template-columns: 1fr;
+					grid-auto-rows: min-content;
+					align-items: center;
+					text-align: center
+				}
+
+				.avatar {
+					margin: 0 auto
+				}
+
+				.articles {
+					grid-template-columns: 1fr
+				}
+			}
+
+			/* floating tiny details */
+			.glow-line {
+				position: absolute;
+				left: 0;
+				right: 0;
+				height: 2px;
+				top: 18%;
+				background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.25), transparent);
+				transform: translateZ(80px)
+			}
+
+			/* subtle hint text */
+			.footer-note {
+				margin-top: 18px;
+				color: var(--muted);
+				font-size: 13px;
+				text-align: center;
+				transform: translateZ(20px)
+			}
+
+			/* accessibility focus */
+			a:focus {
+				outline: 2px solid rgba(0, 247, 255, 0.12)
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="orb o1"></div>
+		<div class="orb o2"></div>
+		<div class="stage" id="stage">
+			<div class="card" id="card">
+				<div class="hero">
+					<div class="avatar" id="avatar">N</div>
+					<div class="title">
+						<h1 id="name">Nikhil</h1>
+						<p id="tag">Coding · Ethical Hacking · Cybersecurity · AI</p>
+
+						<div class="buttons">
+							<a class="btn primary" href="https://nikhilchaudhary9103.github.io/chatting-app/" target="_blank">Open Chat</a>
+							<a class="btn ghost" href="mailto:nikhilchaudhary9103@gmail.com">Email Me</a>
+						</div>
+					</div>
+				</div>
+
+				<div class="glow-line"></div>
+
+				<div class="articles" id="articles">
+					<div class="article">
+						<h3>The Symphony of Code</h3>
+						<p>Elegant, efficient code—built to be maintained. I prioritise readability, testability and collaboration.</p>
+					</div>
+					<div class="article">
+						<h3>AI: Responsible Innovation</h3>
+						<p>Machine learning, NLP and responsible design — building systems that augment humans safely.</p>
+					</div>
+					<div class="article">
+						<h3>Web Development</h3>
+						<p>Accessible interfaces, strong back-ends and thoughtful UX that connect people and ideas.</p>
+					</div>
+					<div class="article">
+						<h3>Cybersecurity</h3>
+						<p>Pen-testing, threat models and secure engineering to keep systems safe and resilient.</p>
+					</div>
+					<div class="article">
+						<h3>Lifelong Learning</h3>
+						<p>Curiosity and practice—continuously staying up to date with new tools and techniques.</p>
+					</div>
+					<div class="article">
+						<h3>Problem Solving</h3>
+						<p>Analytical rigor mixed with creative experimentation to solve hard technical problems.</p>
+					</div>
+				</div>
+
+				<div class="footer-note">Tilt your mouse on the card for a 3D parallax effect. On mobile, tilt your device.</div>
+
+			</div>
+
+		</div>
+		<script>
+			// 3D tilt + parallax for desktop
+			const stage = document.getElementById('stage');
+			const card = document.getElementById('card');
+			const avatar = document.getElementById('avatar');
+			const articles = document.getElementById('articles');
+
+			function handleMove(e) {
+				const rect = card.getBoundingClientRect();
+				const cx = rect.left + rect.width / 2;
+				const cy = rect.top + rect.height / 2;
+				const x = (e.clientX - cx);
+				const y = (e.clientY - cy);
+				const rotY = (x / rect.width) * 18; // rotate around Y
+				const rotX = -(y / rect.height) * 14; // rotate around X
+
+				stage.style.transform = `rotateY(${rotY/4}deg) rotateX(${rotX/4}deg)`;
+				card.style.transform = `translateZ(0px) rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+
+				// inner depth
+				avatar.style.transform = `translateZ(80px) rotateY(${rotY*0.2}deg)`;
+				articles.style.transform = `translateZ(30px) rotateY(${rotY*0.08}deg)`;
+			}
+
+			function handleEnter() {
+				card.style.transition = 'transform 0.12s ease-out';
+			}
+
+			function handleLeave() {
+				stage.style.transform = `rotateY(0deg) rotateX(0deg)`;
+				card.style.transform = `translateZ(0px) rotateY(0deg) rotateX(0deg)`;
+				avatar.style.transform = 'translateZ(0px)';
+				articles.style.transform = 'translateZ(0px)';
+				card.style.transition = 'transform 0.6s cubic-bezier(.2,.9,.3,1)';
+				stage.style.transition = 'transform 0.6s cubic-bezier(.2,.9,.3,1)';
+			}
+
+			card.addEventListener('mousemove', handleMove);
+			card.addEventListener('mouseenter', handleEnter);
+			card.addEventListener('mouseleave', handleLeave);
+
+			// Device tilt support for mobile
+			if (window.DeviceOrientationEvent) {
+				window.addEventListener('deviceorientation', (ev) => {
+					// gamma (left-right), beta (front-back)
+					const g = ev.gamma || 0;
+					const b = ev.beta || 0;
+					const rotY = g / 3;
+					const rotX = b / 6 - 10;
+					stage.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+					card.style.transform = `translateZ(0px) rotateY(${rotY*1.2}deg) rotateX(${rotX}deg)`;
+					avatar.style.transform = `translateZ(80px)`;
+				}, true);
+			}
+
+			// subtle floating orbs parallax based on mouse
+			const orbs = document.querySelectorAll('.orb');
+			document.addEventListener('mousemove', (e) => {
+				const w = window.innerWidth;
+				const h = window.innerHeight;
+				orbs.forEach((o, i) => {
+					const speed = (i === 0) ? 0.04 : 0.02;
+					const x = (e.clientX - w / 2) * speed;
+					const y = (e.clientY - h / 2) * speed;
+					o.style.transform = `translate(${x}px, ${y}px)`;
+				});
+			});
+
+			// Keyboard accessibility: tilt with arrow keys (small)
+			window.addEventListener('keydown', (e) => {
+				const step = 6;
+				let rot = stage.style.transform || 'rotateY(0deg) rotateX(0deg)';
+				const m = rot.match(/rotateY(-?\d+\.?\d*)deg rotateX(-?\d+\.?\d*)deg/);
+				let ry = 0,
+					rx = 0;
+				if (m) {
+					ry = parseFloat(m[1]);
+					rx = parseFloat(m[2]);
+				}
+				if (e.key === 'ArrowLeft') ry -= step;
+				if (e.key === 'ArrowRight') ry += step;
+				if (e.key === 'ArrowUp') rx -= step;
+				if (e.key === 'ArrowDown') rx += step;
+				stage.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
+				card.style.transform = `rotateY(${ry*1.4}deg) rotateX(${rx}deg)`;
+			});
+
+			// Small interaction: click article to expand a modal-like 3D pop
+			document.querySelectorAll('.article').forEach(a => {
+				a.addEventListener('click', () => {
+					a.style.transform = 'translateY(-40px) translateZ(120px) scale(1.02)';
+					setTimeout(() => {
+						a.style.transform = ''
+					}, 900);
+				})
+			});
+		</script>
+	</body>
+
+</html>
